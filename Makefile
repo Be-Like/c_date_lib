@@ -21,7 +21,11 @@ BIN_DIR = bin
 # Flags
 # -I creates the include path
 # -MMD -MP creates dependency files (.d) to track header changes
-CFLAGS = $(STD) -Wall -Wextra -Werror -pedantic -I$(INC_DIR) -MMD -MP
+# CFLAGS = $(STD) -Wall -Wextra -Werror -pedantic -I$(INC_DIR) -MMD -MP
+BASE_FLAGS = $(STD) -I$(INC_DIR) -MMD -MP
+STRICT_FLAGS = -Wall -Wextra -Werror
+DEBUG_FLAGS = -pedantic
+CFLAGS = $(BASE_FLAGS) $(STRICT_FLAGS) -O2
 
 # Source and Object files
 SRCS = $(wildcard $(SRC_DIR)/*.c)
@@ -40,12 +44,15 @@ all: release
 
 # 1. Core Build (Release)
 # Optimized, no debug symbols
-release: CFLAGS += -O2
-release: $(LIB_DIR)/$(LIB_NAME)
+# release: CFLAGS += -O2
+release: 
+	$(MAKE) clean
+	$(LIB_DIR)/$(LIB_NAME)
 
 # 2. Debug Build
 # Debug symbols, no optimization, defines DEBUG macro
-debug: CFLAGS += -g -O0 -DDEBUG
+# debug: DEBUG_FLAGS += -g -O0 -DDEBUG
+debug: CFLAGS = $(BASE_FLAGS) $(DEBUG_FLAGS) -g -O0 -DDEBUG
 debug: $(LIB_DIR)/$(LIB_NAME)
 
 # Link the library (Static Archive)
@@ -61,6 +68,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 
 # 3. Test Build
 # Compiles tests, links against the library, and runs the executable
+test: CFLAGS = $(BASE_FLAGS) $(DEBUG_FLAGS) -g -O0 -DDEBUG
 test: debug $(TEST_BIN)
 	@echo "Running Tests..."
 	./$(TEST_BIN)
